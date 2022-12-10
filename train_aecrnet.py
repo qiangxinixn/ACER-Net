@@ -87,7 +87,7 @@ def train(net, loader_train, loader_test, optim, criterion):
 		x = x.to(opt.device)
 		y = y.to(opt.device)
 
-		out, _, m4, m5 = net(x)
+		out= net(x)
 
 		loss_vgg7, all_ap, all_an, loss_rec = 0, 0, 0, 0
 		if opt.w_loss_l1 > 0:

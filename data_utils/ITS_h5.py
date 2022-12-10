@@ -34,23 +34,37 @@ class RESIDE_Dataset(data.Dataset):
         self.file_list=os.listdir(path)
     def __getitem__(self, index):
 
-        file_name = self.h5path + '/' + str(index) + '.h5'
+        file_name = os.path.join(self.h5path,self.file_list[index])
         f = h5py.File(file_name, 'r')
+        
         haze = f['data']
         clear = f['label']
-
-        haze = Image.fromarray(np.array(haze))
-        clear = Image.fromarray(np.array(clear))
+        
+        i=random.randint(0,haze.shape[0])   
+                
+        haze = haze[i]
+        clear = clear[i]
+        
+        # we might get out of bounds due to noise
+        haze = np.clip(haze, 0, 1)
+        # we might get out of bounds due to noise
+        clear = np.clip(clear, 0, 1)
+        haze = np.asarray(haze, np.float32)
+        clear = np.asarray(clear, np.float32)
+        
+        
+        # haze = Image.fromarray(np.array(haze))
+        # clear = Image.fromarray(np.array(clear))
         #print(f'haze={haze}')
         #exit()
-        clear = tfs.CenterCrop(haze.size[::-1])(clear)
+        # clear = tfs.CenterCrop(haze.size[::-1])(clear)
 
-        if not isinstance(self.size, str):
-            i, j, h, w = tfs.RandomCrop.get_params(haze,output_size=(self.size,self.size))
-            haze = FF.crop(haze, i, j, h, w)
-            clear = FF.crop(clear, i, j, h, w)
+        # if not isinstance(self.size, str):
+        #     i, j, h, w = tfs.RandomCrop.get_params(haze,output_size=(self.size,self.size))
+        #     haze = FF.crop(haze, i, j, h, w)
+        #     clear = FF.crop(clear, i, j, h, w)
 
-        haze, clear = self.augData(haze.convert("RGB"), clear.convert("RGB"))
+        # haze, clear = self.augData(haze.convert("RGB"), clear.convert("RGB"))
         #print(f'haze={haze.shape}')
         #exit()
         return haze, clear
@@ -72,16 +86,15 @@ class RESIDE_Dataset(data.Dataset):
         return data, target
 
     def __len__(self):
-        train_list = glob.glob(self.h5path + '/*h5')
-        return len(train_list)
+        return len(self.file_list)
 
-root = '/root/autodl-tmp/xx/AECR-Net/data'
-_ITS_train_loader=RESIDE_Dataset(root+'ITS_train/', train=True,size=crop_size)
+root = '/root/autodl-tmp/xx/AECR-Net/data/'
+_ITS_train_loader=RESIDE_Dataset(root, train=True,size=crop_size)
 ITS_train_loader=DataLoader(_ITS_train_loader,batch_size=BS,shuffle=False)
 # ITS_train_loader=DataLoader(dataset=RESIDE_Dataset(root+'ITS_train/', train=True,size=crop_size),batch_size=BS,shuffle=True,num_samples=1)
-ITS_test_loader=DataLoader(dataset=RESIDE_Dataset(root+'ITS_test',train=False,size='whole img'),batch_size=1,shuffle=False)
-ITS_train_loader_whole=DataLoader(dataset=RESIDE_Dataset(root+'ITS_train/',train=False,size='whole img'),batch_size=BS,shuffle=False)
-rebuttal_test_loader = DataLoader(dataset=RESIDE_Dataset(root+'ITS_train/',train=False,size='whole img'),batch_size=100,shuffle=False)
+ITS_test_loader=DataLoader(dataset=RESIDE_Dataset(root,train=False,size='whole img'),batch_size=1,shuffle=False)
+ITS_train_loader_whole=DataLoader(dataset=RESIDE_Dataset(root,train=False,size='whole img'),batch_size=BS,shuffle=False)
+rebuttal_test_loader = DataLoader(dataset=RESIDE_Dataset(root,train=False,size='whole img'),batch_size=100,shuffle=False)
 # for debug
 #ITS_test = '/home/why/workspace/CDNet/net/debug/test_h5/'
 #ITS_test_loader_debug=DataLoader(dataset=RESIDE_Dataset(ITS_test,train=False,size='whole img'),batch_size=1,shuffle=False)
