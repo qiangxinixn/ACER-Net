@@ -31,12 +31,13 @@ class RESIDE_Dataset(data.Dataset):
         self.train=train
 
         self.h5path = path # 输入h5文件
+        self.file_list=os.listdir(path)
     def __getitem__(self, index):
 
         file_name = self.h5path + '/' + str(index) + '.h5'
         f = h5py.File(file_name, 'r')
-        haze = f['haze']
-        clear = f['gt']
+        haze = f['data']
+        clear = f['label']
 
         haze = Image.fromarray(np.array(haze))
         clear = Image.fromarray(np.array(clear))
@@ -74,15 +75,19 @@ class RESIDE_Dataset(data.Dataset):
         train_list = glob.glob(self.h5path + '/*h5')
         return len(train_list)
 
-root = '/home/why/datasets/h5/'
-
-ITS_train_loader=DataLoader(dataset=RESIDE_Dataset(root+'ITS_train/', train=True,size=crop_size),batch_size=BS,shuffle=True)
+root = '/root/autodl-tmp/xx/AECR-Net/data'
+_ITS_train_loader=RESIDE_Dataset(root+'ITS_train/', train=True,size=crop_size)
+ITS_train_loader=DataLoader(_ITS_train_loader,batch_size=BS,shuffle=False)
+# ITS_train_loader=DataLoader(dataset=RESIDE_Dataset(root+'ITS_train/', train=True,size=crop_size),batch_size=BS,shuffle=True,num_samples=1)
 ITS_test_loader=DataLoader(dataset=RESIDE_Dataset(root+'ITS_test',train=False,size='whole img'),batch_size=1,shuffle=False)
-ITS_train_loader_whole=DataLoader(dataset=RESIDE_Dataset(root+'ITS_train/',train=False,size='whole img'),batch_size=BS,shuffle=True)
-rebuttal_test_loader = DataLoader(dataset=RESIDE_Dataset(root+'ITS_train/',train=False,size='whole img'),batch_size=100,shuffle=True)
+ITS_train_loader_whole=DataLoader(dataset=RESIDE_Dataset(root+'ITS_train/',train=False,size='whole img'),batch_size=BS,shuffle=False)
+rebuttal_test_loader = DataLoader(dataset=RESIDE_Dataset(root+'ITS_train/',train=False,size='whole img'),batch_size=100,shuffle=False)
 # for debug
 #ITS_test = '/home/why/workspace/CDNet/net/debug/test_h5/'
 #ITS_test_loader_debug=DataLoader(dataset=RESIDE_Dataset(ITS_test,train=False,size='whole img'),batch_size=1,shuffle=False)
-
+for x,y in _ITS_train_loader:
+    print(x)
+    print(y)
+    
 if __name__ == "__main__":
     pass

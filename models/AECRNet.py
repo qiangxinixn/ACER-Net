@@ -3,8 +3,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn import init
 import functools
-from deconv import FastDeconv
-from DCNv2.dcn_v2 import DCN
+from models.deconv import FastDeconv
+from models.DCNv2.dcn_v2 import DCN
 
 
 def default_conv(in_channels, out_channels, kernel_size, bias=True):
